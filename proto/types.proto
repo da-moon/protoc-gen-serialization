@@ -1,0 +1,16 @@
+syntax = "proto3";
+option go_package = "pb";
+// package pb;
+
+// import "google/protobuf/any.proto";
+import "google/protobuf/descriptor.proto";
+
+message CustomType {
+    string custom_input = 1;
+    bool custom_bool= 2;
+    int32 custom_int= 3;
+}
+
+extend google.protobuf.FieldOptions {
+    string tags = 999999;
+}

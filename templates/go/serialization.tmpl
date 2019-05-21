@@ -1,0 +1,73 @@
+{{ define "Serialization" }}
+{{ $type := .Type }}
+{{ $typeName := .TypeName }}
+{{ $fieldImport := .FieldImport }}
+{{ $base := .Base }}
+{{ $lowercase := .Lowercase }}
+{{ $dotNotation := .DotNotation }}
+{{ $paramCase := .ParamCase }}
+    {{if $type }} 
+        func Encode{{$typeName}}ToMetadata (input {{$type}}) (map[string]interface{},error){
+            result := make(map[string]interface{})
+            e := reflect.ValueOf(&input).Elem()
+            for i := 0; i < e.NumField(); i++ {
+                name := e.Type().Field(i).Name
+                if strings.HasPrefix(name, "XXX") {
+                    continue
+                }
+                // t := e.Type().Field(i).Type
+                value := e.Field(i).Interface()
+                result[name] = value
+                // fmt.Printf("%#v %#v %#v\n", name, t, value)
+            }
+            return result, nil
+        }
+        func Decode{{$typeName}}FromMetadata (input map[string]interface{}) (*{{$type}},error){
+            md := &mapstructure.Metadata{}
+            result := &{{$type}}{}
+            config := &mapstructure.DecoderConfig{
+                Metadata: md,
+                Result:   result,
+            }
+            decoder, err := mapstructure.NewDecoder(config)
+            if err != nil {
+                return nil, stacktrace.Propagate(err, "[Decoding Metadata] mapstructure.NewDecoder(config) Failed with config arg %#v", config)
+            }
+            err = decoder.Decode(input)
+            if err != nil {
+                return nil, stacktrace.Propagate(err, "[Decoding Metadata] Decoding {{$type}} from map[string]interface{} Failed with input arg %#v", input)
+            }
+            return result, nil
+        }
+        func Encode{{$typeName}}ToJSON (input {{$type}}) ([]byte,error){
+        result, err := json.Marshal(input)
+        if err != nil {
+            return nil, stacktrace.Propagate(err, "[Encode JSON] Encoding {{$type}} to JSON Failed with input arg %#v",input)
+        }
+        return result,nil
+        }
+        func Decode{{$typeName}}FromJSON (input []byte) (*{{$type}},error){
+            result:=&{{$type}}{}
+            err := json.Unmarshal(input, result)
+            if err != nil {
+                return nil, stacktrace.Propagate(err, "[Decode JSON] Encoding {{$type}} from JSON Failed with input arg %x",input)
+            }
+            return result,nil
+        }
+        func Encode{{$typeName}}ToXML (input {{$type}}) ([]byte,error){
+        result, err := xml.Marshal(input)
+        if err != nil {
+            return nil, stacktrace.Propagate(err, "[Encode XML] Encoding {{$type}} to XML Failed with input arg %#v",input)
+        }
+        return result,nil
+        }
+        func Decode{{$typeName}}FromXML (input []byte) ( *{{$type}},error){
+            result:=&{{$type}}{}
+            err := xml.Unmarshal(input, &result); 
+            if err != nil {
+                return nil, stacktrace.Propagate(err, "[Decode XML] Encoding {{$type}} from XML Failed with input arg %x",input)
+            }
+            return result,nil
+        }
+    {{ end }}
+{{ end }}

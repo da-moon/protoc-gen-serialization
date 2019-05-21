@@ -1,0 +1,5 @@
+{{ define "Service" }}
+{{ range .Methods -}}
+ {{ template "Method" . }}
+{{end}}
+{{ end }}
